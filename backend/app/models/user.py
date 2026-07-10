@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.interview import Interview
 
 
 class User(Base):
@@ -18,3 +23,8 @@ class User(Base):
     )
 
     password_hash: Mapped[str] = mapped_column(String(255))
+
+    interviews: Mapped[list["Interview"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
