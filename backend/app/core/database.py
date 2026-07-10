@@ -1,12 +1,19 @@
 from sqlalchemy import create_engine, text
-import os
-from dotenv import load_dotenv
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from .config import DATABASE_URL
 
-load_dotenv()
+engine = create_engine(DATABASE_URL, echo=True)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
 
-engine = create_engine(DATABASE_URL)
+
+class Base(DeclarativeBase):
+    pass
+
 
 def db_connection():
     try:
