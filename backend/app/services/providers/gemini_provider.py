@@ -1,10 +1,11 @@
-"""OpenAI implementation of the AIService interface."""
+"""Gemini implementation of the AIService interface."""
 
 from __future__ import annotations
 
 import json
 
-from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 
 from app.services.ai_service import (
     AIService,
@@ -12,10 +13,12 @@ from app.services.ai_service import (
     GeneratedQuestion,
 )
 
+_AFC_DISABLED = types.AutomaticFunctionCallingConfig(disable=True)
 
-class OpenAIService(AIService):
+
+class GeminiService(AIService):
     def __init__(self, *, api_key: str, model: str) -> None:
-        self.client = AsyncOpenAI(api_key=api_key)
+        self.client = genai.Client(api_key=api_key)
         self.model = model
 
     async def generate_questions(
@@ -26,7 +29,6 @@ class OpenAIService(AIService):
         count: int = 5,
         difficulty: str = "medium",
     ) -> list[GeneratedQuestion]:
-
         prompt = f"""
 You are an expert technical interviewer.
 
@@ -58,31 +60,26 @@ Rules:
 - The order must start at 1.
 """
 
-        response = await self.client.chat.completions.create(
+        response = await self.client.aio.models.generate_content(
             model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You generate structured interview questions.",
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            temperature=0.7,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.7,
+                response_mime_type="application/json",
+                system_instruction="You generate structured interview questions.",
+                automatic_function_calling=_AFC_DISABLED,
+            ),
         )
 
-        content = response.choices[0].message.content
-
+        content = response.text
         if not content:
-            raise RuntimeError("OpenAI returned an empty response")
+            raise RuntimeError("Gemini returned an empty response")
 
         try:
             data = json.loads(content)
         except json.JSONDecodeError as exc:
             raise RuntimeError(
-                "OpenAI returned invalid JSON for question generation"
+                "Gemini returned invalid JSON for question generation"
             ) from exc
 
         return [
@@ -97,7 +94,6 @@ Rules:
         answer: str,
         role: str | None = None,
     ) -> EvaluationResult:
-
         prompt = f"""
 You are an expert interview evaluator.
 
@@ -128,31 +124,26 @@ Rules:
 - Give specific and constructive feedback.
 """
 
-        response = await self.client.chat.completions.create(
+        response = await self.client.aio.models.generate_content(
             model=self.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an expert interview answer evaluator.",
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            temperature=0.3,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.3,
+                response_mime_type="application/json",
+                system_instruction="You are an expert interview answer evaluator.",
+                automatic_function_calling=_AFC_DISABLED,
+            ),
         )
 
-        content = response.choices[0].message.content
-
+        content = response.text
         if not content:
-            raise RuntimeError("OpenAI returned an empty response")
+            raise RuntimeError("Gemini returned an empty response")
 
         try:
             data = json.loads(content)
         except json.JSONDecodeError as exc:
             raise RuntimeError(
-                "OpenAI returned invalid JSON for answer evaluation"
+                "Gemini returned invalid JSON for answer evaluation"
             ) from exc
 
         return EvaluationResult.model_validate(data)

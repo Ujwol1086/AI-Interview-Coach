@@ -1,9 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class QuestionCreate(BaseModel):
     content: str
     order: int
+
+
+class QuestionGenerateRequest(BaseModel):
+    role: str
+    topic: str | None = None
+    count: int = Field(default=5, ge=1, le=10)
+    difficulty: str = "medium"
 
 
 class QuestionUpdate(BaseModel):
