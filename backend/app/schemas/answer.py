@@ -4,8 +4,11 @@ from pydantic import BaseModel
 
 
 class AnswerCreate(BaseModel):
-    question_id: int
     content: str
+
+
+class AnswerUpdate(BaseModel):
+    content: str | None = None
 
 
 class AnswerResponse(BaseModel):

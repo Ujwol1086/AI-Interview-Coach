@@ -8,6 +8,11 @@ class InterviewCreate(BaseModel):
     status: str = "pending"
 
 
+class InterviewUpdate(BaseModel):
+    title: str | None = None
+    status: str | None = None
+
+
 class InterviewResponse(BaseModel):
     id: int
     user_id: int

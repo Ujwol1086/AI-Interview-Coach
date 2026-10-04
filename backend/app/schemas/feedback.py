@@ -4,8 +4,14 @@ from pydantic import BaseModel
 
 
 class FeedbackCreate(BaseModel):
-    answer_id: int
     content: str
+    score: int | None = None
+    strengths: str | None = None
+    improvements: str | None = None
+
+
+class FeedbackUpdate(BaseModel):
+    content: str | None = None
     score: int | None = None
     strengths: str | None = None
     improvements: str | None = None

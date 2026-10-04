@@ -8,7 +8,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.core.database import db_connection
+from app.api.answers import router as answers_router
 from app.api.auth import router as auth_router
+from app.api.feedback import evaluate_router, router as feedback_router
+from app.api.interviews import router as interviews_router
+from app.api.questions import router as questions_router
 from app.api.users import router as users_router
 
 @asynccontextmanager
@@ -31,6 +35,11 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(interviews_router)
+app.include_router(questions_router)
+app.include_router(answers_router)
+app.include_router(feedback_router)
+app.include_router(evaluate_router)
 
 @app.get("/")
 def home():
