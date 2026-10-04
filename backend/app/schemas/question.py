@@ -2,9 +2,13 @@ from pydantic import BaseModel
 
 
 class QuestionCreate(BaseModel):
-    interview_id: int
     content: str
     order: int
+
+
+class QuestionUpdate(BaseModel):
+    content: str | None = None
+    order: int | None = None
 
 
 class QuestionResponse(BaseModel):
