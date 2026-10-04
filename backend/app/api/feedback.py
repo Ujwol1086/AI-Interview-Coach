@@ -9,6 +9,7 @@ from app.models.feedback import Feedback
 from app.models.question import Question
 from app.models.user import User
 from app.schemas.feedback import FeedbackResponse
+from app.services.feedback_service import evaluate_and_save_feedback
 
 router = APIRouter(
     prefix="/interviews/{interview_id}/questions/{question_id}/answers/feedback",
@@ -72,12 +73,11 @@ def get_feedback(
     response_model=FeedbackResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def evaluate_answer(
+async def evaluate_answer(
     answer_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Generate AI feedback for an answer. Implementation coming next."""
     answer = get_owned_answer_by_id(answer_id, db, current_user)
 
     existing = db.query(Feedback).filter(Feedback.answer_id == answer.id).first()
@@ -87,7 +87,14 @@ def evaluate_answer(
             detail="Feedback already exists for this answer",
         )
 
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="AI evaluation is not implemented yet",
-    )
+    try:
+        return await evaluate_and_save_feedback(
+            db,
+            answer=answer,
+            role=answer.question.interview.title,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI evaluation failed: {exc}",
+        ) from exc

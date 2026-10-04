@@ -6,7 +6,13 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.question import Question
 from app.models.user import User
-from app.schemas.question import QuestionCreate, QuestionResponse, QuestionUpdate
+from app.schemas.question import (
+    QuestionCreate,
+    QuestionGenerateRequest,
+    QuestionResponse,
+    QuestionUpdate,
+)
+from app.services.question_service import generate_questions_for_interview
 
 router = APIRouter(
     prefix="/interviews/{interview_id}/questions",
@@ -55,6 +61,41 @@ def create_question(
     db.commit()
     db.refresh(question)
     return question
+
+
+@router.post(
+    "/generate",
+    response_model=list[QuestionResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+async def generate_questions(
+    interview_id: int,
+    payload: QuestionGenerateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    interview = get_owned_interview(interview_id, db, current_user)
+
+    try:
+        questions = await generate_questions_for_interview(
+            db,
+            interview_id=interview.id,
+            role=payload.role,
+            topic=payload.topic,
+            count=payload.count,
+            difficulty=payload.difficulty,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI question generation failed: {exc}",
+        ) from exc
+
+    if interview.status == "pending":
+        interview.status = "in_progress"
+        db.commit()
+
+    return questions
 
 
 @router.get("/", response_model=list[QuestionResponse])

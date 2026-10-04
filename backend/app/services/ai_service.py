@@ -125,6 +125,14 @@ def get_ai_service() -> AIService:
             raise RuntimeError("AI_API_KEY is required when AI_PROVIDER=openai")
         return OpenAIService(api_key=AI_API_KEY, model=AI_MODEL)
 
+    if provider == "gemini":
+        from app.services.providers.gemini_provider import GeminiService
+
+        if not AI_API_KEY:
+            raise RuntimeError("AI_API_KEY is required when AI_PROVIDER=gemini")
+        return GeminiService(api_key=AI_API_KEY, model=AI_MODEL)
+
     raise ValueError(
-        f"Unsupported AI_PROVIDER '{AI_PROVIDER}'. Use 'stub' or 'openai'."
+        f"Unsupported AI_PROVIDER '{AI_PROVIDER}'. "
+        "Use 'stub', 'openai', or 'gemini'."
     )

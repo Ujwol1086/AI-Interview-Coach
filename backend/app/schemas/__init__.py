@@ -1,7 +1,12 @@
 from .answer import AnswerCreate, AnswerResponse, AnswerUpdate
 from .feedback import FeedbackCreate, FeedbackResponse, FeedbackUpdate
 from .interview import InterviewCreate, InterviewResponse, InterviewUpdate
-from .question import QuestionCreate, QuestionResponse, QuestionUpdate
+from .question import (
+    QuestionCreate,
+    QuestionGenerateRequest,
+    QuestionResponse,
+    QuestionUpdate,
+)
 from .user import Token, UserCreate, UserLogin, UserResponse
 
 __all__ = [
@@ -13,6 +18,7 @@ __all__ = [
     "InterviewUpdate",
     "InterviewResponse",
     "QuestionCreate",
+    "QuestionGenerateRequest",
     "QuestionUpdate",
     "QuestionResponse",
     "AnswerCreate",
